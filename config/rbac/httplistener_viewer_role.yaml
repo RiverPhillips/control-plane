@@ -1,0 +1,27 @@
+# permissions for end users to view httplisteners.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: httplistener-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: control-plane
+    app.kubernetes.io/part-of: control-plane
+    app.kubernetes.io/managed-by: kustomize
+  name: httplistener-viewer-role
+rules:
+- apiGroups:
+  - apigateway.riverphillips.dev
+  resources:
+  - httplisteners
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apigateway.riverphillips.dev
+  resources:
+  - httplisteners/status
+  verbs:
+  - get
