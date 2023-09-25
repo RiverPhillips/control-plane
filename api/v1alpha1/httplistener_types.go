@@ -12,12 +12,17 @@ type Route struct {
 	//+kubebuilder:validation:MinLength=1
 	//+kubebuilder:validation:MaxLength=255
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	prefix string `json:"prefix"`
+	Prefix string `json:"prefix"`
 
 	//+kubebuilder:validation:MinLength=1
 	//+kubebuilder:validation:MaxLength=255
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	service string `json:"service"`
+	Service string `json:"service"`
+
+	//+kubebuilder:validation:MinLength=1
+	//+kubebuilder:validation:MaxLength=255
+	// +operator-sdk:csv:customresourcedefinitions:type=spec
+	RouteName string `json:"routeName"`
 }
 
 // HttpListenerSpec defines the desired state of HttpListener
@@ -29,16 +34,16 @@ type HttpListenerSpec struct {
 	//+kubebuilder:validation:MaxLength=15
 	//+kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	ipAddress string `json:"address"`
+	IpAddress string `json:"address"`
 
 	//+kubebuilder:validation:Minimum=1
 	//+kubebuilder:validation:Maximum=65535
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	port int32 `json:"port"`
+	Port uint32 `json:"port"`
 
 	//+kubebuilder:validation:MinItems=0
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	routes []Route `json:"routes"`
+	Routes []Route `json:"routes"`
 }
 
 // HttpListenerStatus defines the observed state of HttpListener

@@ -1,0 +1,12 @@
+apiVersion: apigateway.riverphillips.dev/v1alpha1
+kind: HttpListener
+metadata:
+  name: httplistener-sample
+  namespace: default
+spec:
+  address: 0.0.0.0
+  port: 8080
+  routes:
+    - prefix: /foo
+      routeName: foo
+      service: foo

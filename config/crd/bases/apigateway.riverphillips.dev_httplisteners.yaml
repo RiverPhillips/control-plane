@@ -51,12 +51,17 @@ spec:
                       maxLength: 255
                       minLength: 1
                       type: string
+                    routeName:
+                      maxLength: 255
+                      minLength: 1
+                      type: string
                     service:
                       maxLength: 255
                       minLength: 1
                       type: string
                   required:
                   - prefix
+                  - routeName
                   - service
                   type: object
                 minItems: 0

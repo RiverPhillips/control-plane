@@ -5,13 +5,17 @@ Copyright 2023.
 package main
 
 import (
+	"context"
 	"flag"
+	cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	"github.com/riverphillips/control-plane/internal/server"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	serverv3 "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -27,6 +31,7 @@ import (
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+	port     uint
 )
 
 func init() {
@@ -45,6 +50,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.UintVar(&port, "port", 3000, "xDSserver port")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -77,10 +83,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.HttpListenerReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	xdsCache := cache.NewSnapshotCache(true, cache.IDHash{}, nil)
+
+	c := controllers.NewHttpListenerReconciler(
+		mgr.GetClient(),
+		mgr.GetScheme(),
+		"test-id",
+		xdsCache,
+	)
+
+	if err = c.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HttpListener")
 		os.Exit(1)
 	}
@@ -94,6 +106,16 @@ func main() {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
+
+	go func() {
+		// Run the xDS server
+		ctx := context.Background()
+		srv := serverv3.NewServer(ctx, xdsCache, nil)
+		if err := server.RunServer(ctx, srv, port); err != nil {
+			setupLog.Error(err, "error running xDS server")
+			os.Exit(1)
+		}
+	}()
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
