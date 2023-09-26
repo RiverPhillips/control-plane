@@ -60,7 +60,7 @@ func NewHttpListenerReconciler(
 //+kubebuilder:rbac:groups=apigateway.riverphillips.dev,resources=httplisteners/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
-// move the current state of the cluster closer to the desid state.
+// move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
 // the HttpListener object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
@@ -75,7 +75,8 @@ func (r *HttpListenerReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	httpListener := apigatewayv1alpha1.HttpListener{}
 	err := r.Get(ctx, req.NamespacedName, &httpListener)
-	if !errors.IsNotFound(err) {
+	if err != nil && !errors.IsNotFound(err) {
+		logger.Error(err, "Failed to get HttpListener", "name", req.NamespacedName, "errorMessage", err.Error())
 		return ctrl.Result{}, err
 	}
 
@@ -134,7 +135,7 @@ func (r *HttpListenerReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
-	logger.V(1).Info("Snapshot set successfully")
+	logger.Info("Snapshot set successfully")
 
 	return ctrl.Result{
 		RequeueAfter: time.Second * 30,
