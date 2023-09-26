@@ -5,7 +5,6 @@ Copyright 2023.
 package main
 
 import (
-	"context"
 	"flag"
 	cache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	"github.com/riverphillips/control-plane/internal/server"
@@ -107,9 +106,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx := ctrl.SetupSignalHandler()
+
 	go func() {
 		// Run the xDS server
-		ctx := context.Background()
 		srv := serverv3.NewServer(ctx, xdsCache, nil)
 		if err := server.RunServer(ctx, srv, port); err != nil {
 			setupLog.Error(err, "error running xDS server")
@@ -118,7 +118,7 @@ func main() {
 	}()
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
